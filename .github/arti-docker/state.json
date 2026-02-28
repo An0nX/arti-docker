@@ -1,0 +1,13 @@
+{
+  "upstream": {
+    "url": "https://gitlab.torproject.org/tpo/core/arti",
+    "project": "tpo/core/arti"
+  },
+  "commit_sha": "ba4163ed943a67cd8a55f7291797fb22a788f950",
+  "commit_short": "ba4163ed",
+  "commit_title": "Merge branch 'ahf/fix-win32-build' into 'main'",
+  "commit_author": "Nick Mathewson",
+  "commit_date": "2026-02-28T13:49:27.000-05:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/ba4163ed943a67cd8a55f7291797fb22a788f950",
+  "built_at_utc": "2026-03-02T15:45:01Z"
+}
