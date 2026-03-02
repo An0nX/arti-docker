@@ -99,4 +99,7 @@ ENTRYPOINT ["/usr/local/bin/arti"]
 CMD ["proxy", \
      "--disable-fs-permission-checks", \
      "-o", "proxy.socks_listen=[\"0.0.0.0:9050\"]", \
-     "-o", "proxy.dns_listen=[\"0.0.0.0:9053\"]"]
+     "-o", "proxy.dns_listen=[\"0.0.0.0:9053\"]", \
+     "-o", "storage.cache_dir=\"/var/lib/arti/cache\"", \
+     "-o", "storage.state_dir=\"/var/lib/arti/state\"", \
+     "-o", "storage.keystore_dir=\"/var/lib/arti/keys\""]
