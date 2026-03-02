@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: "Force build even if no new upstream release"
+        description: "Force build even if no new upstream commit"
         type: boolean
         default: false
 
@@ -58,7 +58,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Fetch latest upstream release and compare with state
+      - name: Fetch latest upstream commit and compare with state
         id: check
         shell: bash
         run: |
@@ -67,87 +67,62 @@ jobs:
           mkdir -p "$(dirname "${STATE_FILE}")"
 
           # ── read previous state ──
-          prev_release_tag=""
+          prev_commit_sha=""
 
           if [ -f "${STATE_FILE}" ]; then
-            prev_release_tag="$(jq -r '.release_tag // ""' "${STATE_FILE}")"
+            prev_commit_sha="$(jq -r '.commit_sha // ""' "${STATE_FILE}")"
           fi
 
-          # ── GitLab: list releases, pick latest stable arti-v* ──
-          releases_json="$(
+          # ── GitLab: fetch latest commit on main ──
+          commit_json="$(
             curl -fsSL \
               -H "Accept: application/json" \
-              "https://gitlab.torproject.org/api/v4/projects/${UPSTREAM_PROJECT}/releases?per_page=50&order_by=released_at&sort=desc"
+              "https://gitlab.torproject.org/api/v4/projects/${UPSTREAM_PROJECT}/repository/commits?per_page=1"
           )"
 
-          release_json="$(
-            echo "${releases_json}" | jq -r '
-              [ .[] |
-                select(.upcoming_release != true) |
-                select(.tag_name | test("^arti-v[0-9]+\\.[0-9]+\\.[0-9]+$"))
-              ] | first // empty
-            '
-          )"
+          commit_sha="$(echo "${commit_json}" | jq -r '.[0].id')"
+          commit_short="$(echo "${commit_json}" | jq -r '.[0].short_id')"
+          commit_title="$(echo "${commit_json}" | jq -r '.[0].title')"
+          commit_author="$(echo "${commit_json}" | jq -r '.[0].author_name')"
+          commit_email="$(echo "${commit_json}" | jq -r '.[0].author_email')"
+          commit_date="$(echo "${commit_json}" | jq -r '.[0].committed_date')"
+          commit_url="$(echo "${commit_json}" | jq -r '.[0].web_url')"
 
-          if [ -z "${release_json}" ] || [ "${release_json}" = "null" ]; then
-            echo "::warning::No stable arti release found, falling back to latest arti-* release"
-            release_json="$(
-              echo "${releases_json}" | jq -r '
-                [ .[] |
-                  select(.upcoming_release != true) |
-                  select(.tag_name | startswith("arti-"))
-                ] | first // empty
-              '
-            )"
-          fi
-
-          if [ -z "${release_json}" ] || [ "${release_json}" = "null" ]; then
-            echo "::error::No arti release found at all"
-            exit 1
-          fi
-
-          release_tag="$(echo "${release_json}" | jq -r '.tag_name')"
-
-          # ── resolve tag → commit SHA ──
-          tag_json="$(
-            curl -fsSL \
-              -H "Accept: application/json" \
-              "https://gitlab.torproject.org/api/v4/projects/${UPSTREAM_PROJECT}/repository/tags/${release_tag}"
-          )"
-
-          release_sha="$(echo "${tag_json}" | jq -r '.commit.id')"
-
-          if [ -z "${release_sha}" ] || [ "${release_sha}" = "null" ]; then
-            echo "::error::Cannot resolve SHA for tag ${release_tag}"
+          if [ -z "${commit_sha}" ] || [ "${commit_sha}" = "null" ]; then
+            echo "::error::Cannot fetch latest commit from upstream"
             exit 1
           fi
 
           # ── compare ──
           changed=false
-          if [ -z "${prev_release_tag}" ] || [ "${prev_release_tag}" != "${release_tag}" ]; then
+          if [ -z "${prev_commit_sha}" ] || [ "${prev_commit_sha}" != "${commit_sha}" ]; then
             changed=true
           fi
 
-          short_sha="${release_sha:0:12}"
-          semver="$(echo "${release_tag}" | sed -n 's/^arti-v//p')"
-          docker_tag="$(echo "${release_tag}" | sed 's/[^a-zA-Z0-9._-]/-/g')"
+          # ── date-based tag: 20260228 ──
+          date_tag="$(echo "${commit_date}" | sed 's/T.*//' | tr -d '-')"
 
           {
             echo "changed=${changed}"
-            echo "release_tag=${release_tag}"
-            echo "docker_tag=${docker_tag}"
-            echo "semver=${semver}"
-            echo "release_sha=${release_sha}"
-            echo "short_sha=${short_sha}"
+            echo "commit_sha=${commit_sha}"
+            echo "commit_short=${commit_short}"
+            echo "commit_title=${commit_title}"
+            echo "commit_author=${commit_author}"
+            echo "commit_email=${commit_email}"
+            echo "commit_date=${commit_date}"
+            echo "commit_url=${commit_url}"
+            echo "date_tag=${date_tag}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Build decision (log)
         shell: bash
         run: |
           echo "changed=${{ steps.check.outputs.changed }}"
-          echo "release_tag=${{ steps.check.outputs.release_tag }}"
-          echo "semver=${{ steps.check.outputs.semver }}"
-          echo "release_sha=${{ steps.check.outputs.release_sha }}"
+          echo "commit_sha=${{ steps.check.outputs.commit_sha }}"
+          echo "commit_short=${{ steps.check.outputs.commit_short }}"
+          echo "commit_title=${{ steps.check.outputs.commit_title }}"
+          echo "commit_author=${{ steps.check.outputs.commit_author }}"
+          echo "commit_date=${{ steps.check.outputs.commit_date }}"
           echo "force=${{ github.event.inputs.force }}"
           echo "event=${{ github.event_name }}"
 
@@ -165,13 +140,12 @@ jobs:
 
           tags: |
             ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ steps.check.outputs.docker_tag }}
-            ${{ env.IMAGE_NAME }}:${{ steps.check.outputs.semver }}
-            ${{ env.IMAGE_NAME }}:sha-${{ steps.check.outputs.short_sha }}
+            ${{ env.IMAGE_NAME }}:${{ steps.check.outputs.date_tag }}
+            ${{ env.IMAGE_NAME }}:sha-${{ steps.check.outputs.commit_short }}
 
           build-args: |
             ARTI_REPO=${{ env.UPSTREAM_CLONE_URL }}
-            ARTI_REF=${{ steps.check.outputs.release_tag }}
+            ARTI_REF=${{ steps.check.outputs.commit_sha }}
 
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -183,8 +157,8 @@ jobs:
             org.opencontainers.image.url=https://tpo.pages.torproject.net/core/arti/
             org.opencontainers.image.documentation=https://tpo.pages.torproject.net/core/arti/
             org.opencontainers.image.licenses=MIT OR Apache-2.0
-            org.opencontainers.image.revision=${{ steps.check.outputs.release_sha }}
-            org.opencontainers.image.version=${{ steps.check.outputs.semver }}
+            org.opencontainers.image.revision=${{ steps.check.outputs.commit_sha }}
+            org.opencontainers.image.created=${{ steps.check.outputs.commit_date }}
 
       - name: Update state file
         if: steps.check.outputs.changed == 'true'
@@ -196,29 +170,36 @@ jobs:
 
           jq -n \
             --arg upstream_url "${UPSTREAM_REPO_URL}" \
-            --arg release_tag "${{ steps.check.outputs.release_tag }}" \
-            --arg release_sha "${{ steps.check.outputs.release_sha }}" \
-            --arg semver "${{ steps.check.outputs.semver }}" \
+            --arg commit_sha "${{ steps.check.outputs.commit_sha }}" \
+            --arg commit_short "${{ steps.check.outputs.commit_short }}" \
+            --arg commit_title "${{ steps.check.outputs.commit_title }}" \
+            --arg commit_author "${{ steps.check.outputs.commit_author }}" \
+            --arg commit_date "${{ steps.check.outputs.commit_date }}" \
+            --arg commit_url "${{ steps.check.outputs.commit_url }}" \
             --arg built_at_utc "${now}" \
             '{
               upstream: {
                 url: $upstream_url,
                 project: "tpo/core/arti"
               },
-              release_tag: $release_tag,
-              release_sha: $release_sha,
-              semver: $semver,
+              commit_sha: $commit_sha,
+              commit_short: $commit_short,
+              commit_title: $commit_title,
+              commit_author: $commit_author,
+              commit_date: $commit_date,
+              commit_url: $commit_url,
               built_at_utc: $built_at_utc
             }' > "${STATE_FILE}"
 
-      - name: Commit & push updated state.json
+      - name: Commit & push updated state (mirror upstream commit)
         if: steps.check.outputs.changed == 'true'
         shell: bash
         run: |
           set -euo pipefail
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Mirror upstream commit author
+          git config user.name "${{ steps.check.outputs.commit_author }}"
+          git config user.email "${{ steps.check.outputs.commit_email }}"
 
           git add "${STATE_FILE}"
 
@@ -227,5 +208,21 @@ jobs:
             exit 0
           fi
 
-          git commit -m "ci: update build state (release ${{ steps.check.outputs.release_tag }})"
+          # Mirror upstream commit message with build metadata
+          COMMIT_MSG="$(cat <<'COMMIT_BODY'
+          ${{ steps.check.outputs.commit_title }}
+
+          Upstream-Commit: ${{ steps.check.outputs.commit_sha }}
+          Upstream-Author: ${{ steps.check.outputs.commit_author }} <${{ steps.check.outputs.commit_email }}>
+          Upstream-Date: ${{ steps.check.outputs.commit_date }}
+          Upstream-URL: ${{ steps.check.outputs.commit_url }}
+          Image-Tags: latest, ${{ steps.check.outputs.date_tag }}, sha-${{ steps.check.outputs.commit_short }}
+          COMMIT_BODY
+          )"
+
+          # Use upstream commit date
+          export GIT_AUTHOR_DATE="${{ steps.check.outputs.commit_date }}"
+          export GIT_COMMITTER_DATE="${{ steps.check.outputs.commit_date }}"
+
+          git commit -m "${COMMIT_MSG}"
           git push
