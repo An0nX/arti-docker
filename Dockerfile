@@ -6,7 +6,7 @@ ARG ARTI_REF=main
 # ───────────────────────────────────────────────────────────
 #  Stage 1 — build
 # ───────────────────────────────────────────────────────────
-FROM --platform=$TARGETPLATFORM rustlang/rust:alpine AS build
+FROM --platform=$TARGETPLATFORM rustlang/rust:nightly-alpine AS build
 
 ARG ARTI_REPO
 ARG ARTI_REF
