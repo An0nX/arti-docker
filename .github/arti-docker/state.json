@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "96263d6fc6ca0994ddf102d68094d25e984145c6",
-  "commit_short": "96263d6f",
-  "commit_title": "Merge branch '2.1.0-bumps' into 'main'",
+  "commit_sha": "9ffec63dc5d18b139e0754456f49434044a88588",
+  "commit_short": "9ffec63d",
+  "commit_title": "Merge branch 'changelog-2.1.0' into 'main'",
   "commit_author": "gabi-250",
-  "commit_date": "2026-03-02T18:35:44.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/96263d6fc6ca0994ddf102d68094d25e984145c6",
-  "built_at_utc": "2026-03-02T21:32:10Z"
+  "commit_date": "2026-03-02T18:43:46.000+00:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/9ffec63dc5d18b139e0754456f49434044a88588",
+  "built_at_utc": "2026-03-03T04:21:51Z"
 }
