@@ -20,7 +20,7 @@ Built as a **fully static** binary with **all features enabled** and shipped in 
 - **📦 Fully static binary:** Built for `gcr.io/distroless/static:nonroot` — no libc, no dynamic linker.
 - **🌐 Full-featured:** Built with `--all-features` — SOCKS proxy, DNS resolver, onion services (client & server), pluggable transports, RPC, key management.
 - **🧾 Config-driven:** Mount a TOML config or configure entirely via CLI flags.
-- **🔄 Auto-updated:** CI checks for new upstream releases every hour and rebuilds automatically.
+- **🔄 Auto-updated:** CI checks for new upstream commits every hour and rebuilds automatically.
 - **🧰 Build-time pinning:** Upstream repo/ref are configurable via build args.
 
 ---
@@ -35,11 +35,11 @@ Arti is under **active development** by The Tor Project. While functional, it ma
 
 ---
 
-## 🚀 Quick Start (Docker Compose)
+## 🚀 Quick Start
 
-### 1. Create `docker-compose.yml`
+### Docker Compose (recommended)
 
-The container works **out of the box** with sensible defaults — no config file required.
+Create `docker-compose.yml`:
 
 ```yaml
 services:
@@ -47,18 +47,14 @@ services:
     image: whn0thacked/arti-docker:latest
     container_name: arti
     restart: unless-stopped
-
     environment:
       RUST_LOG: "info"
-
     ports:
-      # SOCKS5 proxy
-      - "9050:9050/tcp"
-      # DNS resolver (optional)
-      # - "9053:9053/tcp"
-      # - "9053:9053/udp"
-
-    # Hardening
+      - "127.0.0.1:9050:9050/tcp"
+      # - "127.0.0.1:9053:9053/tcp"
+      # - "127.0.0.1:9053:9053/udp"
+    volumes:
+      - arti-data:/var/lib/arti
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -66,181 +62,94 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,nosuid,nodev,noexec,size=64m
-
-    # Persistent Tor state (consensus cache, keys, etc.)
-    volumes:
-      - arti-data:/var/lib/arti
-
-    # Resource limits (optional)
     deploy:
       resources:
         limits:
           cpus: "1.0"
           memory: 512M
-
+        reservations:
+          cpus: "0.1"
+          memory: 128M
     logging:
       driver: json-file
       options:
         max-size: "10m"
-        max-file: "3"
+        max-file: "5"
+        compress: "true"
+    stop_grace_period: 30s
 
 volumes:
   arti-data:
 ```
-
-### 2. Start
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Verify Tor is working
+Verify:
 
 ```bash
 curl --socks5-hostname 127.0.0.1:9050 https://check.torproject.org/api/ip
+# {"IsTor":true,"IP":"xxx.xxx.xxx.xxx"}
 ```
 
-Expected response:
-
-```json
-{"IsTor":true,"IP":"xxx.xxx.xxx.xxx"}
-```
-
-### 4. Logs
-
-```bash
-docker compose logs -f
-```
-
----
-
-## 📝 Advanced: Custom Configuration
-
-### With a config file
-
-Create `arti.toml` (see [upstream documentation](https://tpo.pages.torproject.net/core/arti/) for format):
-
-```yaml
-services:
-  arti:
-    image: whn0thacked/arti-docker:latest
-    container_name: arti
-    restart: unless-stopped
-
-    volumes:
-      - ./arti.toml:/etc/arti.toml:ro
-      - arti-data:/var/lib/arti
-
-    ports:
-      - "9050:9050/tcp"
-
-    # Override CMD to use config file
-    command: ["proxy", "--disable-fs-permission-checks", "-c", "/etc/arti.toml"]
-
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp:rw,nosuid,nodev,noexec,size=64m
-
-volumes:
-  arti-data:
-```
-
-### With CLI overrides
+### Docker Run (one-liner)
 
 ```bash
 docker run -d --name arti \
-  -p 9050:9050 \
-  whn0thacked/arti-docker:latest \
-  proxy \
-  --disable-fs-permission-checks \
-  -o "proxy.socks_listen=[\"0.0.0.0:9050\"]" \
-  -o "proxy.dns_listen=[\"0.0.0.0:9053\"]" \
-  -l info
+  -p 127.0.0.1:9050:9050 \
+  -v arti-data:/var/lib/arti \
+  --read-only --tmpfs /tmp:rw,nosuid,nodev,noexec,size=64m \
+  --security-opt no-new-privileges:true --cap-drop ALL \
+  --memory 512m --cpus 1.0 \
+  --restart unless-stopped \
+  whn0thacked/arti-docker:latest
 ```
 
 ---
 
-## 🧅 Onion Services (Hidden Services)
-
-### Running an onion service
-
-Create `arti-hs.toml` with your onion service configuration, then:
-
-```yaml
-services:
-  arti-hs:
-    image: whn0thacked/arti-docker:latest
-    container_name: arti-hs
-    restart: unless-stopped
-
-    volumes:
-      - ./arti-hs.toml:/etc/arti.toml:ro
-      - arti-keys:/var/lib/arti/keys
-
-    command: ["proxy", "--disable-fs-permission-checks", "-c", "/etc/arti.toml"]
-
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    read_only: true
-    tmpfs:
-      - /tmp:rw,nosuid,nodev,noexec,size=64m
-
-volumes:
-  arti-keys:
-```
-
-### Key management
-
-```bash
-# List keys
-docker run --rm whn0thacked/arti-docker:latest keys list
-
-# List keystores
-docker run --rm whn0thacked/arti-docker:latest keys list-keystores
-
-# Check key integrity
-docker run --rm whn0thacked/arti-docker:latest keys check-integrity
-
-# List onion service keys
-docker run --rm \
-  -v arti-keys:/var/lib/arti/keys:ro \
-  whn0thacked/arti-docker:latest \
-  hsc key list
-```
-
----
-
-## ⚙️ Configuration
+## ⚙️ Configuration Reference
 
 ### Environment Variables
 
 | Variable | Required | Default | Description |
 |---|:---:|---|---|
-| `RUST_LOG` | No | — | Log level filter (e.g. `info`, `debug`, `trace`, `arti=debug,tor_proto=info`). |
+| `RUST_LOG` | No | `info` (built-in) | Log level filter. Supports per-module granularity. |
 
-### CLI Parameters
+**`RUST_LOG` examples:**
+
+| Value | Effect |
+|---|---|
+| `info` | Default — recommended for production |
+| `debug` | Verbose — troubleshooting |
+| `warn` | Quiet — only problems |
+| `arti=debug,tor_proto=info` | Per-module granularity |
+| `trace` | Extreme verbosity (development only) |
+
+### CLI Parameters (Global)
 
 | Parameter | Short | Description |
 |---|---|---|
 | `--config FILE` | `-c` | Load configuration from file. Can be specified multiple times. |
 | `--option KEY=VALUE` | `-o` | Override config values using TOML syntax. Can be specified multiple times. |
 | `--log-level LEVEL` | `-l` | Override log level (`trace`, `debug`, `info`, `warn`, `error`). |
-| `--disable-fs-permission-checks` | — | Disable filesystem permission checks (recommended in containers). |
+| `--disable-fs-permission-checks` | — | Disable filesystem permission checks (enabled by default in this image). |
+
+### CLI Parameters (`proxy` subcommand)
+
+| Parameter | Short | Description |
+|---|---|---|
+| `--socks-port PORT` | `-p` | Override SOCKS listen port (default: `9050`). |
+| `--dns-port PORT` | — | Override DNS listen port (default: `9053`). |
 
 ### Subcommands
 
 | Subcommand | Description |
 |---|---|
-| `proxy` | Run the SOCKS/DNS proxy (default). |
-| `keys list` | List keys. |
-| `keys list-keystores` | List keystores. |
-| `keys check-integrity` | Check key integrity. |
+| `proxy` | Run the SOCKS/DNS proxy **(default)**. |
+| `keys list` | List all keys. |
+| `keys list-keystores` | List key storage backends. |
+| `keys check-integrity` | Verify key integrity. |
 | `hsc key get` | Get onion service key. |
 | `hsc key list` | List onion service keys. |
 | `hss` | Hidden service server operations. |
@@ -249,16 +158,17 @@ docker run --rm \
 
 | Port | Protocol | Purpose |
 |---:|---|---|
-| `9050` | TCP | SOCKS5 proxy (main Tor entry point). |
-| `9053` | TCP/UDP | DNS resolver (anonymized DNS over Tor). |
+| `9050` | TCP | SOCKS5 proxy — main Tor entry point. |
+| `9053` | TCP/UDP | DNS resolver — anonymized DNS queries over Tor. |
 | `9150` | TCP | Alternative SOCKS5 port (Tor Browser convention). |
 
 ### Volumes
 
-| Container Path | Purpose |
-|---|---|
-| `/etc/arti.toml` | Configuration file (optional — mount from host). |
-| `/var/lib/arti` | Persistent state: consensus cache, descriptors, keys. |
+| Container Path | Purpose | Backup |
+|---|---|---|
+| `/var/lib/arti` | Persistent state: consensus cache, descriptors, guard state. Safe to delete — re-bootstraps in 30s–2min. | Optional |
+| `/var/lib/arti/keys` | Cryptographic keys: onion service identity, client auth. **Losing = losing .onion address.** | **Critical** |
+| `/etc/arti.toml` | Configuration file (optional — mount from host as read-only). | Optional |
 
 ---
 
@@ -273,13 +183,123 @@ proxy --disable-fs-permission-checks \
   -o "proxy.dns_listen=[\"0.0.0.0:9053\"]"
 ```
 
-So the container effectively runs a SOCKS5 proxy on port `9050` and a DNS resolver on port `9053`, listening on all interfaces.
+The container runs a SOCKS5 proxy on `9050` and a DNS resolver on `9053`, listening on all interfaces inside the container.
 
-To override, pass your own subcommand and arguments:
+Override by passing your own arguments:
 
 ```bash
 docker run ... whn0thacked/arti-docker:latest proxy -c /etc/arti.toml
+docker run ... whn0thacked/arti-docker:latest proxy --socks-port 1080
+docker run ... whn0thacked/arti-docker:latest keys list
 ```
+
+---
+
+## 📝 Advanced Usage
+
+### Custom config file
+
+```bash
+docker run -d --name arti \
+  -p 127.0.0.1:9050:9050 \
+  -v ./arti.toml:/etc/arti.toml:ro \
+  -v arti-data:/var/lib/arti \
+  --read-only --tmpfs /tmp:rw,nosuid,nodev,noexec,size=64m \
+  --security-opt no-new-privileges:true --cap-drop ALL \
+  whn0thacked/arti-docker:latest \
+  proxy --disable-fs-permission-checks -c /etc/arti.toml
+```
+
+### CLI overrides (no config file needed)
+
+```bash
+docker run -d --name arti \
+  -p 127.0.0.1:9050:9050 \
+  -p 127.0.0.1:9053:9053 \
+  whn0thacked/arti-docker:latest \
+  proxy \
+  --disable-fs-permission-checks \
+  -o 'proxy.socks_listen=["0.0.0.0:9050"]' \
+  -o 'proxy.dns_listen=["0.0.0.0:9053"]' \
+  -l debug
+```
+
+### DNS resolution over Tor
+
+```bash
+# Enable DNS port in compose or docker run:
+# -p 127.0.0.1:9053:9053/tcp -p 127.0.0.1:9053:9053/udp
+
+dig @127.0.0.1 -p 9053 torproject.org
+nslookup torproject.org 127.0.0.1 -port=9053
+```
+
+### Use with applications
+
+```bash
+# curl
+curl --socks5-hostname 127.0.0.1:9050 https://example.onion
+
+# Environment variable (works with many apps)
+ALL_PROXY=socks5h://127.0.0.1:9050 curl https://check.torproject.org/api/ip
+
+# proxychains
+echo "socks5 127.0.0.1 9050" >> /etc/proxychains.conf
+proxychains curl https://check.torproject.org/api/ip
+
+# Firefox: Settings → Network → Manual Proxy → SOCKS Host: 127.0.0.1:9050
+# ✅ Check "Proxy DNS when using SOCKS v5"
+```
+
+---
+
+## 🧅 Onion Services
+
+### Running an onion service
+
+Create `arti.toml` with onion service config (see [upstream docs](https://tpo.pages.torproject.net/core/arti/)):
+
+```bash
+docker run -d --name arti-hs \
+  -v ./arti.toml:/etc/arti.toml:ro \
+  -v arti-keys:/var/lib/arti/keys \
+  -v arti-data:/var/lib/arti \
+  --read-only --tmpfs /tmp:rw,nosuid,nodev,noexec,size=64m \
+  --security-opt no-new-privileges:true --cap-drop ALL \
+  whn0thacked/arti-docker:latest \
+  proxy --disable-fs-permission-checks -c /etc/arti.toml
+```
+
+### Key management
+
+```bash
+docker run --rm whn0thacked/arti-docker:latest keys list
+docker run --rm whn0thacked/arti-docker:latest keys list-keystores
+docker run --rm whn0thacked/arti-docker:latest keys check-integrity
+
+# With mounted keys volume:
+docker run --rm -v arti-keys:/var/lib/arti/keys:ro \
+  whn0thacked/arti-docker:latest hsc key list
+```
+
+---
+
+## 🛡️ Security Hardening
+
+This image applies the following hardening measures:
+
+| Measure | Description |
+|---|---|
+| **Distroless base** | No shell, no package manager, no utilities — minimal attack surface |
+| **Non-root** | Runs as UID 65534 (`nonroot`) |
+| **Static binary** | No dynamic linker, no shared libraries |
+| **Read-only FS** | Root filesystem is read-only; `/tmp` via tmpfs |
+| **No capabilities** | All Linux capabilities dropped (`cap_drop: ALL`) |
+| **No privilege escalation** | `no-new-privileges` prevents setuid/setgid abuse |
+| **Resource limits** | CPU and memory limits prevent DoS |
+| **Log rotation** | Prevents disk exhaustion |
+| **SIGINT shutdown** | Graceful shutdown via `STOPSIGNAL SIGINT` |
+| **Localhost binding** | Ports bound to `127.0.0.1` by default in examples |
 
 ---
 
@@ -290,7 +310,7 @@ This Dockerfile supports pinning upstream Arti source:
 - `ARTI_REPO` (default: `https://gitlab.torproject.org/tpo/core/arti.git`)
 - `ARTI_REF` (default: `main`)
 
-### Multi-arch build (amd64 + arm64)
+### Multi-arch build
 
 ```bash
 docker buildx build \
@@ -299,20 +319,11 @@ docker buildx build \
   --push .
 ```
 
-### Build a specific upstream tag
+### Build a specific commit
 
 ```bash
 docker buildx build \
-  --build-arg ARTI_REF=arti-v1.4.0 \
-  -t whn0thacked/arti-docker:arti-v1.4.0 \
-  --push .
-```
-
-### Build from a specific commit
-
-```bash
-docker buildx build \
-  --build-arg ARTI_REF=abc123def456 \
+  --build-arg ARTI_REF=ba4163ed943a67cd8a55f7291797fb22a788f950 \
   -t whn0thacked/arti-docker:dev \
   --push .
 ```
@@ -332,6 +343,7 @@ docker run --rm arti:test --version
 
 - **Arti upstream:** https://gitlab.torproject.org/tpo/core/arti
 - **Arti documentation:** https://tpo.pages.torproject.net/core/arti/
+- **Arti example config:** https://gitlab.torproject.org/tpo/core/arti/-/raw/main/crates/arti/src/arti-example-config.toml
 - **Tor Project:** https://www.torproject.org/
 - **Distroless images:** https://github.com/GoogleContainerTools/distroless
 
