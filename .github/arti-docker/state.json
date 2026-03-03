@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "8c0b86464ea69e365c4b62f8e337b12719807315",
-  "commit_short": "8c0b8646",
-  "commit_title": "Merge branch 'changelog-fix' into 'main'",
+  "commit_sha": "1058b4eff0b8fed051a8cb6edd6a31273557c761",
+  "commit_short": "1058b4ef",
+  "commit_title": "Merge branch 'oxford-commaify' into 'main'",
   "commit_author": "gabi-250",
-  "commit_date": "2026-03-03T11:30:37.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/8c0b86464ea69e365c4b62f8e337b12719807315",
-  "built_at_utc": "2026-03-03T15:35:41Z"
+  "commit_date": "2026-03-03T16:29:14.000+00:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/1058b4eff0b8fed051a8cb6edd6a31273557c761",
+  "built_at_utc": "2026-03-03T21:29:55Z"
 }
