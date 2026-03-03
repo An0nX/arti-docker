@@ -73,6 +73,10 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
       exit 1; \
     fi
 
+# ── prepare data directories with correct ownership ─────
+RUN mkdir -p /data/cache /data/state \
+    && chown -R 65534:65534 /data
+
 # ───────────────────────────────────────────────────────────
 #  Stage 2 — runtime
 # ───────────────────────────────────────────────────────────
@@ -89,6 +93,7 @@ STOPSIGNAL SIGINT
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/arti /usr/local/bin/arti
+COPY --from=build --chown=65534:65534 /data /var/lib/arti
 
 WORKDIR /tmp
 
@@ -101,5 +106,4 @@ CMD ["proxy", \
      "-o", "proxy.socks_listen=[\"0.0.0.0:9050\"]", \
      "-o", "proxy.dns_listen=[\"0.0.0.0:9053\"]", \
      "-o", "storage.cache_dir=\"/var/lib/arti/cache\"", \
-     "-o", "storage.state_dir=\"/var/lib/arti/state\"", \
-     "-o", "storage.keystore_dir=\"/var/lib/arti/keys\""]
+     "-o", "storage.state_dir=\"/var/lib/arti/state\""]
