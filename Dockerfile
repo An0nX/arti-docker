@@ -90,6 +90,10 @@ STOPSIGNAL SIGINT
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/arti /usr/local/bin/arti
 
+# All default paths ($HOME/.local/share/arti, $HOME/.config/arti, etc.)
+# resolve into /tmp/arti/... which is writable via tmpfs or mounted volume
+ENV HOME=/tmp/arti
+
 WORKDIR /tmp
 
 EXPOSE 9050/tcp 9053/udp 9053/tcp 9150/tcp
