@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "9ffec63dc5d18b139e0754456f49434044a88588",
-  "commit_short": "9ffec63d",
-  "commit_title": "Merge branch 'changelog-2.1.0' into 'main'",
+  "commit_sha": "8c0b86464ea69e365c4b62f8e337b12719807315",
+  "commit_short": "8c0b8646",
+  "commit_title": "Merge branch 'changelog-fix' into 'main'",
   "commit_author": "gabi-250",
-  "commit_date": "2026-03-02T18:43:46.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/9ffec63dc5d18b139e0754456f49434044a88588",
-  "built_at_utc": "2026-03-03T04:21:51Z"
+  "commit_date": "2026-03-03T11:30:37.000+00:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/8c0b86464ea69e365c4b62f8e337b12719807315",
+  "built_at_utc": "2026-03-03T15:35:41Z"
 }
