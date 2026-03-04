@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "b1dc1f8d5591c88474aa947186d8e3d824df5804",
-  "commit_short": "b1dc1f8d",
-  "commit_title": "Merge branch 'cell-order' into 'main'",
-  "commit_author": "opara",
-  "commit_date": "2026-03-03T20:36:51.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/b1dc1f8d5591c88474aa947186d8e3d824df5804",
-  "built_at_utc": "2026-03-04T04:20:47Z"
+  "commit_sha": "f3e26280ba730150a23ce26ab58635ae368ee246",
+  "commit_short": "f3e26280",
+  "commit_title": "Merge branch 'workaround-mypy' into 'main'",
+  "commit_author": "Jim Newsome",
+  "commit_date": "2026-03-03T20:15:04.000-06:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/f3e26280ba730150a23ce26ab58635ae368ee246",
+  "built_at_utc": "2026-03-04T11:56:09Z"
 }
