@@ -23,7 +23,6 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
 
 WORKDIR /src
 
-# ── system dependencies ──────────────────────────────────
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add --no-cache \
       ca-certificates git \
@@ -35,17 +34,14 @@ RUN --mount=type=cache,target=/var/cache/apk \
       protobuf-dev \
     && update-ca-certificates
 
-# ── clone source ─────────────────────────────────────────
 RUN --mount=type=cache,target=/root/.cache/git \
     git clone --depth=1 --branch "${ARTI_REF}" "${ARTI_REPO}" . \
     || (git init . && git remote add origin "${ARTI_REPO}" \
         && git fetch --depth=1 origin "${ARTI_REF}" \
         && git checkout --detach FETCH_HEAD)
 
-# ── toolchain components ─────────────────────────────────
 RUN rustup component add rust-src
 
-# ── build ────────────────────────────────────────────────
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/src/target \
@@ -90,10 +86,6 @@ STOPSIGNAL SIGINT
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/arti /usr/local/bin/arti
 
-# All default paths ($HOME/.local/share/arti, $HOME/.config/arti, etc.)
-# resolve into /tmp/arti/... which is writable via tmpfs or mounted volume
-ENV HOME=/tmp/arti
-
 WORKDIR /tmp
 
 EXPOSE 9050/tcp 9053/udp 9053/tcp 9150/tcp
@@ -105,4 +97,5 @@ CMD ["proxy", \
      "-o", "proxy.socks_listen=[\"0.0.0.0:9050\"]", \
      "-o", "proxy.dns_listen=[\"0.0.0.0:9053\"]", \
      "-o", "storage.cache_dir=\"/tmp/arti/cache\"", \
-     "-o", "storage.state_dir=\"/tmp/arti/state\""]
+     "-o", "storage.state_dir=\"/tmp/arti/state\"", \
+     "-o", "storage.keystore.path=\"/tmp/arti/keystore\""]
