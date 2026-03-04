@@ -97,5 +97,4 @@ CMD ["proxy", \
      "-o", "proxy.socks_listen=[\"0.0.0.0:9050\"]", \
      "-o", "proxy.dns_listen=[\"0.0.0.0:9053\"]", \
      "-o", "storage.cache_dir=\"/tmp/arti/cache\"", \
-     "-o", "storage.state_dir=\"/tmp/arti/state\"", \
-     "-o", "storage.keystore.path=\"/tmp/arti/keystore\""]
+     "-o", "storage.state_dir=\"/tmp/arti/state\""]
