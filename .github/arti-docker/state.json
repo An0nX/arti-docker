@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "e4c430bdda7ba8c8ed8d82a966c391957f632dfe",
-  "commit_short": "e4c430bd",
-  "commit_title": "Merge branch 'cell-order' into 'main'",
-  "commit_author": "opara",
-  "commit_date": "2026-03-04T17:20:51.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/e4c430bdda7ba8c8ed8d82a966c391957f632dfe",
-  "built_at_utc": "2026-03-04T21:34:56Z"
+  "commit_sha": "eea3c71cfbcf0ce3499dabec3f0c2520f0d76dfd",
+  "commit_short": "eea3c71c",
+  "commit_title": "Merge branch 'signature-rework-rename-signed' into 'main'",
+  "commit_author": "Clara Engler",
+  "commit_date": "2026-03-05T07:26:54.000+00:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/eea3c71cfbcf0ce3499dabec3f0c2520f0d76dfd",
+  "built_at_utc": "2026-03-05T11:39:22Z"
 }
