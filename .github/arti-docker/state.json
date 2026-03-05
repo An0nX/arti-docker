@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "eea3c71cfbcf0ce3499dabec3f0c2520f0d76dfd",
-  "commit_short": "eea3c71c",
-  "commit_title": "Merge branch 'signature-rework-rename-signed' into 'main'",
-  "commit_author": "Clara Engler",
-  "commit_date": "2026-03-05T07:26:54.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/eea3c71cfbcf0ce3499dabec3f0c2520f0d76dfd",
-  "built_at_utc": "2026-03-05T11:39:22Z"
+  "commit_sha": "7cdfe184852570bc237f5458f7e820f3036b12b8",
+  "commit_short": "7cdfe184",
+  "commit_title": "Merge branch 'chutney-test-to-py' into 'main'",
+  "commit_author": "Jim Newsome",
+  "commit_date": "2026-03-05T11:32:00.000-06:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/7cdfe184852570bc237f5458f7e820f3036b12b8",
+  "built_at_utc": "2026-03-05T22:09:04Z"
 }
