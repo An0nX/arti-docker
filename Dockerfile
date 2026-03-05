@@ -69,6 +69,9 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
       exit 1; \
     fi
 
+RUN mkdir -p /tmp/arti/cache /tmp/arti/state && \
+    chmod 755 /tmp/arti /tmp/arti/cache /tmp/arti/state
+
 # ───────────────────────────────────────────────────────────
 #  Stage 2 — runtime
 # ───────────────────────────────────────────────────────────
@@ -85,6 +88,8 @@ STOPSIGNAL SIGINT
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/arti /usr/local/bin/arti
+
+COPY --from=build --chown=65532:65532 --chmod=755 /tmp/arti /tmp/arti
 
 WORKDIR /tmp
 
