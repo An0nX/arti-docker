@@ -6,10 +6,29 @@ ARG ARTI_REF=main
 # ───────────────────────────────────────────────────────────
 #  Stage 1 — build
 # ───────────────────────────────────────────────────────────
-FROM --platform=$TARGETPLATFORM rustlang/rust:nightly-alpine AS build
+FROM --platform=$TARGETPLATFORM dhi.io/alpine-base:3.23-dev AS build
 
 ARG ARTI_REPO
 ARG ARTI_REF
+
+# ── Install Rust via rustup ──────────────────────────────
+ENV RUSTUP_HOME="/usr/local/rustup" \
+    CARGO_HOME="/usr/local/cargo" \
+    PATH="/usr/local/cargo/bin:${PATH}"
+
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
+      ca-certificates git curl \
+      build-base musl-dev pkgconf perl make \
+      binutils \
+      openssl-dev openssl-libs-static \
+      sqlite-dev sqlite-static \
+      zlib-dev zlib-static \
+      protobuf-dev \
+    && update-ca-certificates
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain nightly --profile minimal
 
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_TERM_COLOR=always \
@@ -25,17 +44,6 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     RUSTFLAGS="-C target-cpu=generic -C link-arg=-static-libgcc"
 
 WORKDIR /src
-
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk add --no-cache \
-      ca-certificates git \
-      build-base musl-dev pkgconf perl make \
-      binutils \
-      openssl-dev openssl-libs-static \
-      sqlite-dev sqlite-static \
-      zlib-dev zlib-static \
-      protobuf-dev \
-    && update-ca-certificates
 
 RUN --mount=type=cache,target=/root/.cache/git \
     git clone --depth=1 --branch "${ARTI_REF}" "${ARTI_REPO}" . \
