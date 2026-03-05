@@ -11,7 +11,6 @@ FROM --platform=$TARGETPLATFORM dhi.io/alpine-base:3.23-dev AS build
 ARG ARTI_REPO
 ARG ARTI_REF
 
-# ── Install Rust via rustup ──────────────────────────────
 ENV RUSTUP_HOME="/usr/local/rustup" \
     CARGO_HOME="/usr/local/cargo" \
     PATH="/usr/local/cargo/bin:${PATH}"
@@ -27,8 +26,16 @@ RUN --mount=type=cache,target=/var/cache/apk \
       protobuf-dev \
     && update-ca-certificates
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain nightly --profile minimal
+RUN set -eux; \
+    case "$(apk --print-arch)" in \
+      x86_64)  ARCH=x86_64  ;; \
+      aarch64) ARCH=aarch64 ;; \
+      *) echo "unsupported arch: $(apk --print-arch)"; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://static.rust-lang.org/rustup/dist/${ARCH}-unknown-linux-musl/rustup-init" -o /tmp/rustup-init; \
+    chmod +x /tmp/rustup-init; \
+    /tmp/rustup-init -y --default-toolchain nightly --profile minimal; \
+    rm /tmp/rustup-init
 
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_TERM_COLOR=always \
