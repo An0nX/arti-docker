@@ -16,10 +16,13 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_PROFILE_RELEASE_LTO=true \
     CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
     CARGO_PROFILE_RELEASE_DEBUG=false \
-    CARGO_PROFILE_RELEASE_OPT_LEVEL=3 \
+    CARGO_PROFILE_RELEASE_STRIP=true \
+    CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=false \
+    CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=false \
+    CARGO_PROFILE_RELEASE_PANIC=abort \
     OPENSSL_STATIC=1 \
     SQLITE3_STATIC=1 \
-    RUSTFLAGS="-C target-cpu=generic -C overflow-checks=on -C debug-assertions=off -C strip=symbols -C link-arg=-static-libgcc"
+    RUSTFLAGS="-C target-cpu=generic -C link-arg=-static-libgcc"
 
 WORKDIR /src
 
