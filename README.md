@@ -54,14 +54,13 @@ services:
       # - "127.0.0.1:9053:9053/tcp"
       # - "127.0.0.1:9053:9053/udp"
     volumes:
-      - arti-data:/var/lib/arti
+      - arti-data:/tmp/arti
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=16m
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: true
-    tmpfs:
-      - /tmp:rw,nosuid,nodev,noexec,size=64m
     deploy:
       resources:
         limits:
