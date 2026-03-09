@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "799ea10d547cbfe20d10a2b160df7e2bd9e507cb",
-  "commit_short": "799ea10d",
-  "commit_title": "Merge branch 'dirmirror-fsm' into 'main'",
-  "commit_author": "Clara Engler",
-  "commit_date": "2026-03-09T09:29:40.000+00:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/799ea10d547cbfe20d10a2b160df7e2bd9e507cb",
-  "built_at_utc": "2026-03-09T15:41:58Z"
+  "commit_sha": "2ef6415c12eedb13305f79446f7cdb87ca4d28de",
+  "commit_short": "2ef6415c",
+  "commit_title": "Merge branch 'chutney-finish-test-to-py' into 'main'",
+  "commit_author": "Jim Newsome",
+  "commit_date": "2026-03-09T09:58:44.000-05:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/2ef6415c12eedb13305f79446f7cdb87ca4d28de",
+  "built_at_utc": "2026-03-09T21:36:10Z"
 }
