@@ -3,11 +3,11 @@
     "url": "https://gitlab.torproject.org/tpo/core/arti",
     "project": "tpo/core/arti"
   },
-  "commit_sha": "2ef6415c12eedb13305f79446f7cdb87ca4d28de",
-  "commit_short": "2ef6415c",
-  "commit_title": "Merge branch 'chutney-finish-test-to-py' into 'main'",
-  "commit_author": "Jim Newsome",
-  "commit_date": "2026-03-09T09:58:44.000-05:00",
-  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/2ef6415c12eedb13305f79446f7cdb87ca4d28de",
-  "built_at_utc": "2026-03-09T21:36:10Z"
+  "commit_sha": "3101b9c720dbc0c85a96061d82ee3dcbd7966da0",
+  "commit_short": "3101b9c7",
+  "commit_title": "Merge branch 'fix-arti-bench-bin-override' into 'main'",
+  "commit_author": "gabi-250",
+  "commit_date": "2026-03-10T14:46:24.000+00:00",
+  "commit_url": "https://gitlab.torproject.org/tpo/core/arti/-/commit/3101b9c720dbc0c85a96061d82ee3dcbd7966da0",
+  "built_at_utc": "2026-03-11T04:16:02Z"
 }
